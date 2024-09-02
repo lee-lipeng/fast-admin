@@ -1,0 +1,24 @@
+[project]
+name = "fast-admin"
+version = "0.1.0"
+description = "本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的开源角色权限管理系统"
+authors = [
+    {name = "lee-lipeng", email = "1640583318@qq.com"},
+]
+dependencies = [
+    "fastapi>=0.112.2",
+    "tortoise-orm>=0.21.6",
+    "pydantic-settings>=2.4.0",
+    "aerich>=0.7.2",
+    "uvicorn>=0.30.6",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+fast_admin = "uvicorn fast_admin.main:app --host 0.0.0.0 --port 8000 --reload"
