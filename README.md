@@ -46,7 +46,14 @@ cd fast-admin
 pdm install
 ```
 
-### 3. 启动项目
+### 3. Aerich初始化
+
+```bash
+aerich init -t fast_admin.core.config.TORTOISE_ORM
+aerich init-db
+```
+
+### 4. 启动项目
 
 ```bash
 pdm run fast_admin
