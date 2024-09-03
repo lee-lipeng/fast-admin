@@ -11,6 +11,7 @@ dependencies = [
     "pydantic-settings>=2.4.0",
     "aerich>=0.7.2",
     "uvicorn>=0.30.6",
+    "asyncpg>=0.29.0",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -22,3 +23,8 @@ distribution = false
 
 [tool.pdm.scripts]
 fast_admin = "uvicorn fast_admin.main:app --host 0.0.0.0 --port 8000 --reload"
+
+[tool.aerich]
+tortoise_orm = "fast_admin.core.config.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."

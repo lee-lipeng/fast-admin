@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
-from fast_admin.core.config import settings, TORTOISE_ORM
 from contextlib import asynccontextmanager
 from aerich import Command
+
+from fast_admin.core.config import settings, TORTOISE_ORM
 
 """
 FastAPI 应用程序的主入口点。
@@ -42,7 +43,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title=settings.APP_TITLE,
+    description=settings.APP_DESCRIPTION,
+    version=settings.APP_VERSION,
+    lifespan=lifespan
+)
 
 """
 FastAPI 应用程序实例。

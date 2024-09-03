@@ -1,8 +1,7 @@
+import os
 import secrets
-
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv, set_key
-import os
 
 """
 配置模块。
@@ -33,6 +32,9 @@ class Settings(BaseSettings):
     此类继承自 pydantic_settings.BaseSettings，用于定义应用程序的配置信息，包括：
 
     - APP_NAME: 应用程序的名称。
+    - APP_VERSION: 应用程序的版本号。
+    - APP_TITLE: 应用程序的标题。
+    - APP_DESCRIPTION: 应用程序的描述。
     - SECRET_KEY: 应用程序的密钥。
     - DATABASE_USER: 数据库用户名。
     - DATABASE_PASSWORD: 数据库密码。
@@ -41,17 +43,24 @@ class Settings(BaseSettings):
     - DATABASE_NAME: 数据库名称。
     - DB_MIN_CONNECTIONS: 数据库连接池最小连接数。
     - DB_MAX_CONNECTIONS: 数据库连接池最大连接数。
+    - TIMEZONE: 时区设置。
 
     """
-    APP_NAME: str = "FastAdmin"
-    SECRET_KEY: str = os.environ.get("SECRET_KEY")  # 从环境变量中获取密钥
+    APP_NAME: str = "fast_admin"
+    APP_VERSION: str = "0.1.0"
+    APP_TITLE: str = f"{APP_NAME} v{APP_VERSION}"
+    APP_DESCRIPTION: str = "本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的开源角色权限管理系统"
+
+    SECRET_KEY: str = os.environ.get("SECRET_KEY")
+
     DATABASE_USER: str = os.environ.get("DATABASE_USER")
     DATABASE_PASSWORD: str = os.environ.get("DATABASE_PASSWORD")
     DATABASE_HOST: str = os.environ.get("DATABASE_HOST")
     DATABASE_PORT: int = os.environ.get("DATABASE_PORT")
     DATABASE_NAME: str = os.environ.get("DATABASE_NAME")
-    DB_MIN_CONNECTIONS: int = os.environ.get("DB_MIN_CONNECTIONS", 5)  # 数据库连接池最小连接数
-    DB_MAX_CONNECTIONS: int = os.environ.get("DB_MAX_CONNECTIONS", 10) # 数据库连接池最大连接数
+    DB_MIN_CONNECTIONS: int = os.environ.get("DB_MIN_CONNECTIONS", 5)
+    DB_MAX_CONNECTIONS: int = os.environ.get("DB_MAX_CONNECTIONS", 10)
+    TIMEZONE: str = "Asia/Shanghai"
 
 
 settings = Settings()
@@ -67,14 +76,15 @@ TORTOISE_ORM = {
                 "password": settings.DATABASE_PASSWORD,
                 "database": settings.DATABASE_NAME,
             },
-            "minsize": settings.DB_MIN_CONNECTIONS,  # 最小连接数
-            "maxsize": settings.DB_MAX_CONNECTIONS,  # 最大连接数
+            "minsize": settings.DB_MIN_CONNECTIONS,
+            "maxsize": settings.DB_MAX_CONNECTIONS,
         }
     },
     "apps": {
-        "models": {
-            "models": ["fast_admin.models", "aerich.models"],
+        settings.APP_NAME: {
+            "models": [f"{settings.APP_NAME}.models", "aerich.models"],
             "default_connection": "default",
         },
     },
+    "timezone": settings.TIMEZONE,
 }
