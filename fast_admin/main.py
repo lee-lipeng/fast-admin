@@ -1,11 +1,11 @@
-import asyncio
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 from aerich import Command
 
 from fast_admin.core.config import settings, TORTOISE_ORM
-from fast_admin.core.logger import setup_logging, process_logs_from_queue
+from fast_admin.core.logger import setup_logging
+from fast_admin.api import router
 
 """
 FastAPI 应用程序的主入口点。
@@ -30,9 +30,7 @@ async def lifespan(app: FastAPI):
     # 注册 Tortoise-ORM
     register_tortoise(
         app,
-        config=TORTOISE_ORM,
-        generate_schemas=False,  # 禁用自动生成表结构，依赖Aerich迁移
-        add_exception_handlers=False,
+        config=TORTOISE_ORM
     )
 
     # 初始化 Aerich 的命令对象，用于数据库迁移
@@ -43,8 +41,8 @@ async def lifespan(app: FastAPI):
     )
 
     # 运行数据库迁移
-    await command.init()  # 初始化迁移
-    await command.upgrade(run_in_transaction=True)  # 执行数据库迁移
+    await command.init()
+    await command.upgrade(run_in_transaction=True)
 
     # 注册 Redis 客户端到 FastAPI 应用程序状态
     # app.state.redis = Redis(
@@ -57,21 +55,16 @@ async def lifespan(app: FastAPI):
     # 设置应用程序日志
     setup_logging()
 
-    # 在单独的任务中运行日志处理函数，以便异步处理日志
-    task = asyncio.create_task(process_logs_from_queue())
-    try:
-        yield
-    finally:
-        # 等待日志处理任务完成
-        await task
+    yield
 
 
 app = FastAPI(
     title=settings.APP_TITLE,
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
+app.include_router(router)
 
 """
 FastAPI 应用程序实例。

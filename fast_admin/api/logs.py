@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Query
-from fast_admin.core.pagination import paginate
-from fast_admin.models.logs import Log
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
-from fast_admin.schemas.logs import LogOut
+from fastapi import APIRouter, Query
 
-router = APIRouter(prefix="/logs", tags=["Logs"])
+from fast_admin.core.pagination import paginate, Pagination
+from fast_admin.models.logs import Log
+from fast_admin.schemas import logs
 
+router = APIRouter()
 
-@router.get("/", response_model=List[LogOut])
+@router.get("/", response_model=Pagination[logs.LogOut])
 async def get_logs(
         level: Optional[str] = Query(None, description="日志级别"),
+        process: Optional[str] = Query(None, description="进程信息"),
+        thread: Optional[str] = Query(None, description="线程信息"),
         logger_name: Optional[str] = Query(None, description="记录器名称"),
         module: Optional[str] = Query(None, description="模块名称"),
         function_name: Optional[str] = Query(None, description="函数名称"),
@@ -33,14 +35,15 @@ async def get_logs(
 
     filters = {
         "level": level,
+        "process": process,
+        "thread": thread,
         "logger_name": logger_name,
         "module": module,
-        "function_name": function_name,
+        "function_name": function_name
     }
 
-    # 动态添加过滤条件
     for field, value in filters.items():
-        if value:
+        if value is not None:
             query = query.filter(**{field: value})
 
     if message:
@@ -52,10 +55,9 @@ async def get_logs(
     if end_time:
         query = query.filter(timestamp__lte=end_time)
 
-    # 排序
     if order_by:
         order_by_field = f"-{order_by}" if order.lower() == "desc" else order_by
         query = query.order_by(order_by_field)
-
-    # 使用分页函数返回结果
-    return await paginate(query, page, page_size)
+    # 分页
+    result = await paginate(query, page, page_size)
+    return result

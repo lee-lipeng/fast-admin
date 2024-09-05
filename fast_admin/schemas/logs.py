@@ -10,6 +10,8 @@ class LogOut(BaseModel):
     level: str
     message: str
     timestamp: datetime
+    process: Optional[str] = None
+    thread: Optional[str] = None
     logger_name: Optional[str] = None
     module: Optional[str] = None
     line_no: Optional[int] = None
@@ -17,4 +19,5 @@ class LogOut(BaseModel):
     exception: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        # 允许从 ORM 对象加载数据
+        from_attributes = True

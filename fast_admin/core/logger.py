@@ -1,25 +1,28 @@
-import asyncio
 import sys
-import json
 import logging
 from loguru import logger
+
 from fast_admin.models.logs import Log
 
-log_queue = asyncio.Queue()
 
+class AsyncioHandler:
+    """将日志信息写入到数据库的处理器"""
 
-class AsyncioQueueHandler:
-    """将日志信息写入 asyncio 队列的处理器"""
+    async def write(self, message) -> None:
+        """写入日志记录到数据库"""
+        record = message.record
 
-    def __init__(self):
-        self.log_queue = log_queue
-
-    async def write(self, message):
-        """写入日志记录到 asyncio 队列"""
-        try:
-            await self.log_queue.put(message)
-        except Exception as e:
-            logger.error(f"写入日志到队列失败: {e}")
+        await Log.create(
+            level=record["level"].name,
+            message=record["message"],
+            process=str(record.get("process")),
+            thread=str(record.get("thread")),
+            logger_name=record.get("name", ""),
+            module=record.get("module", ""),
+            line_no=record.get("line", 0),
+            function_name=record.get("function", ""),
+            exception=record.get("exception", ""),
+        )
 
 
 def setup_logging() -> None:
@@ -51,13 +54,13 @@ def setup_logging() -> None:
         diagnose=True,  # 启用诊断信息
     )
 
-    # 添加Redis队列处理器
-    redis_handler = AsyncioQueueHandler()
+    # 添加异步数据库处理器
     logger.add(
-        redis_handler.write,
+        AsyncioHandler().write,
         format=log_format,
         level="INFO",
-        serialize=True,  # 序列化为JSON格式
+        serialize=True,
+        backtrace=True,
         enqueue=True
     )
 
@@ -76,30 +79,3 @@ def setup_logging() -> None:
         uvicorn_logger = logging.getLogger(logger_name)
         uvicorn_logger.handlers = [InterceptHandler()]
         uvicorn_logger.propagate = False
-
-
-async def process_logs_from_queue():
-    """
-   从 asyncio 队列中处理日志并写入数据库
-   """
-    while True:
-        try:
-            # 从队列中获取日志数据
-            log_data = await log_queue.get()
-            log_data = json.loads(log_data).get('record')
-            # 处理日志数据
-            await Log.create(
-                level=log_data['level'].get('name'),
-                message=log_data['message'],
-                logger_name=log_data.get('name', ''),
-                module=log_data.get('module', ''),
-                line_no=log_data.get('line', 0),
-                function_name=log_data.get('function', ''),
-                exception=log_data.get('exception', ''),
-            )
-            # 标记任务完成
-            log_queue.task_done()
-        except json.JSONDecodeError as json_error:
-            logger.error(f"JSON解码错误: {json_error}")
-        except Exception as e:
-            logger.error(f"处理日志队列时出错: {e}")

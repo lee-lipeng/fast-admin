@@ -1,18 +1,20 @@
+from typing import List, Generic, TypeVar
+from pydantic import BaseModel
 from fastapi import Query
-from typing import List, TypeVar, Generic
 from tortoise.queryset import QuerySet
 
 ModelType = TypeVar("ModelType")
 
 
-class Pagination(Generic[ModelType]):
-    """分页结果"""
+class Pagination(BaseModel, Generic[ModelType]):
+    """分页结果模型"""
+    items: List[ModelType]
+    total: int
+    page: int
+    page_size: int
 
-    def __init__(self, items: List[ModelType], total: int, page: int, page_size: int):
-        self.items = items
-        self.total = total
-        self.page = page
-        self.page_size = page_size
+    class Config:
+        from_attributes = True
 
 
 async def paginate(
