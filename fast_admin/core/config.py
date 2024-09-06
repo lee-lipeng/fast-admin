@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     此类继承自 pydantic_settings.BaseSettings，用于定义应用程序的配置信息，包括：
 
+    - DEBUG: 调试模式。
     - APP_NAME: 应用程序的名称。
     - APP_VERSION: 应用程序的版本号。
     - APP_TITLE: 应用程序的标题。
@@ -44,8 +45,13 @@ class Settings(BaseSettings):
     - DB_MIN_CONNECTIONS: 数据库连接池最小连接数。
     - DB_MAX_CONNECTIONS: 数据库连接池最大连接数。
     - TIMEZONE: 时区设置。
+    - REDIS_HOST: Redis 主机名。
+    - REDIS_PORT: Redis 端口号。
+    - REDIS_DB: Redis 数据库号。
 
     """
+    DEBUG: bool = False
+
     APP_NAME: str = "fast_admin"
     APP_VERSION: str = "0.1.0"
     APP_TITLE: str = f"{APP_NAME} v{APP_VERSION}"
@@ -61,6 +67,10 @@ class Settings(BaseSettings):
     DB_MIN_CONNECTIONS: int = os.environ.get("DB_MIN_CONNECTIONS", 5)
     DB_MAX_CONNECTIONS: int = os.environ.get("DB_MAX_CONNECTIONS", 10)
     TIMEZONE: str = "Asia/Shanghai"
+
+    REDIS_HOST: str = os.environ.get("REDIS_HOST")
+    REDIS_PORT: int = os.environ.get("REDIS_PORT")
+    REDIS_DB: int = os.environ.get("REDIS_DB")
 
 
 settings = Settings()

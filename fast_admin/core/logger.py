@@ -3,6 +3,7 @@ import logging
 from loguru import logger
 
 from fast_admin.models.logs import Log
+from fast_admin.core.config import settings
 
 
 class AsyncioHandler:
@@ -48,10 +49,10 @@ def setup_logging() -> None:
     logger.add(
         sys.stdout,
         format=log_format,
-        level="INFO",
-        enqueue=True,  # 使用队列以确保多线程安全
-        backtrace=True,  # 启用回溯以便于调试
-        diagnose=True,  # 启用诊断信息
+        level="DEBUG" if settings.DEBUG else "INFO",  # 调试模式下输出DEBUG级别日志
+        enqueue=True,       # 使用队列以确保多线程安全
+        backtrace=True,     # 启用回溯以便于调试
+        diagnose=True,      # 启用诊断信息
     )
 
     # 添加异步数据库处理器
@@ -64,7 +65,7 @@ def setup_logging() -> None:
         enqueue=True
     )
 
-    # 重定向标准的logging到loguru
+    # 重定向logging到loguru
     class InterceptHandler(logging.Handler):
         def emit(self, record: logging.LogRecord) -> None:
             # 将日志级别从标准logging映射到loguru的字符串级别
