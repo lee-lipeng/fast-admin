@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 from aerich import Command
 
 from fast_admin.core.config import settings, TORTOISE_ORM
 from fast_admin.core.logger import setup_logging
+from fast_admin.core import middleware
 from fast_admin.api import router
 
 """
@@ -65,6 +67,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(router)
+
+# 动态按序加载中间件
+for middleware_name in settings.MIDDLEWARE:
+    if middleware_name == "cors_middleware":
+        middleware.cors_middleware(app, settings)
+    else:
+        # 获取并注册中间件
+        middleware_function = getattr(middleware, middleware_name)
+        app.middleware("http")(middleware_function)
 
 """
 FastAPI 应用程序实例。

@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     - REDIS_HOST: Redis 主机名。
     - REDIS_PORT: Redis 端口号。
     - REDIS_DB: Redis 数据库号。
+    - ALLOW_ORIGINS: 允许跨域请求的源。
+    - ALLOW_CREDENTIALS: 是否允许跨域请求携带凭据。
+    - ALLOW_METHODS: 允许跨域请求的方法。
+    - ALLOW_HEADERS: 允许跨域请求的头部。
+    - MIDDLEWARE: 中间件配置列表。
 
     """
     DEBUG: bool = False
@@ -71,6 +76,17 @@ class Settings(BaseSettings):
     REDIS_HOST: str = os.environ.get("REDIS_HOST")
     REDIS_PORT: int = os.environ.get("REDIS_PORT")
     REDIS_DB: int = os.environ.get("REDIS_DB")
+
+    ALLOW_ORIGINS: list = ["*"]
+    ALLOW_CREDENTIALS: bool = True
+    ALLOW_METHODS: list = ["*"]
+    ALLOW_HEADERS: list = ["*"]
+
+    MIDDLEWARE: list = [
+        # 按序加载中间件配置列表
+        "header_middleware",
+        "cors_middleware",
+    ]
 
 
 settings = Settings()
