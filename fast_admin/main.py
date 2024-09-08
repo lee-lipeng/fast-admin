@@ -1,12 +1,11 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 from aerich import Command
 
 from fast_admin.core.config import settings, TORTOISE_ORM
 from fast_admin.core.logger import setup_logging
-from fast_admin.core import middleware
+from fast_admin.core import middleware, exceptions
 from fast_admin.api import router
 
 """
@@ -77,6 +76,8 @@ for middleware_name in settings.MIDDLEWARE:
         middleware_function = getattr(middleware, middleware_name)
         app.middleware("http")(middleware_function)
 
+# 注册异常处理器
+exceptions.register_exception(app)
 """
 FastAPI 应用程序实例。
 
