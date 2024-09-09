@@ -1,13 +1,16 @@
+import time
+
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-
-# 示例自定义中间件
-async def header_middleware(request: Request, call_next):
+# 自定义中间件，用于记录请求处理时间
+async def process_time_middleware(request: Request, call_next):
     # Request处理
+    start_time = time.time()
     response: Response = await call_next(request)
     # Response处理
-    response.headers["X-Header"] = "fast_admin"
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
     return response
 
 

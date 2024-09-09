@@ -2,13 +2,15 @@ from typing import Optional
 from datetime import datetime
 from fastapi import APIRouter, Query
 
-from fast_admin.core.pagination import paginate, Pagination
+from fast_admin.core.pagination import paginate
 from fast_admin.models.logs import Log
 from fast_admin.schemas import logs
+from fast_admin.core.response import success_response
 
 router = APIRouter()
 
-@router.get("/", response_model=Pagination[logs.LogOut])
+
+@router.get("/")
 async def get_logs(
         level: Optional[str] = Query(None, description="日志级别"),
         process: Optional[str] = Query(None, description="进程信息"),
@@ -29,7 +31,6 @@ async def get_logs(
     获取日志列表。
 
     支持筛选和排序，并提供分页功能。
-
     """
     query = Log.all()
 
@@ -41,23 +42,28 @@ async def get_logs(
         "module": module,
         "function_name": function_name
     }
-
+    # 精确搜索
     for field, value in filters.items():
         if value is not None:
             query = query.filter(**{field: value})
 
+    # 模糊搜索
     if message:
         query = query.filter(message__icontains=message)
     if exception:
         query = query.filter(exception__icontains=exception)
+
+    # 时间范围过滤
     if start_time:
         query = query.filter(timestamp__gte=start_time)
     if end_time:
         query = query.filter(timestamp__lte=end_time)
 
+    # 排序
     if order_by:
         order_by_field = f"-{order_by}" if order.lower() == "desc" else order_by
         query = query.order_by(order_by_field)
+
     # 分页
-    result = await paginate(query, page, page_size)
-    return result
+    result = await paginate(query, logs.LogOut, page, page_size)
+    return success_response(result)

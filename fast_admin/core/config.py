@@ -84,7 +84,7 @@ class Settings(BaseSettings):
 
     MIDDLEWARE: list = [
         # 按序加载中间件配置列表
-        "header_middleware",
+        "process_time_middleware",
         "cors_middleware",
     ]
 
