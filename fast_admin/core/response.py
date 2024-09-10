@@ -1,8 +1,13 @@
 from fastapi import status as http_status
 from fastapi.responses import ORJSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Any, Optional
 
-from pydantic import BaseModel
+"""
+统一格式的响应封装，用于返回成功或错误的响应。
+
+本项目不使用此方法，直接返回。
+"""
 
 
 def success_response(
@@ -25,7 +30,7 @@ def success_response(
         content={
             'code': code,
             'message': message,
-            'data': data,
+            'data': jsonable_encoder(data),  # 序列化数据
         }
     )
 
@@ -50,6 +55,6 @@ def error_response(
         content={
             'code': code,
             'message': message,
-            'data': data,
+            'data': jsonable_encoder(data),
         }
     )

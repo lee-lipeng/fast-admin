@@ -2,15 +2,14 @@ from typing import Optional
 from datetime import datetime
 from fastapi import APIRouter, Query
 
-from fast_admin.core.pagination import paginate
+from fast_admin.core.pagination import paginate, Pagination
 from fast_admin.models.logs import Log
-from fast_admin.schemas import logs
-from fast_admin.core.response import success_response
+from fast_admin.schemas.logs import LogOut
 
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("/", response_model=Pagination[LogOut])
 async def get_logs(
         level: Optional[str] = Query(None, description="日志级别"),
         process: Optional[str] = Query(None, description="进程信息"),
@@ -65,5 +64,4 @@ async def get_logs(
         query = query.order_by(order_by_field)
 
     # 分页
-    result = await paginate(query, logs.LogOut, page, page_size)
-    return success_response(result)
+    return await paginate(query, page, page_size)
