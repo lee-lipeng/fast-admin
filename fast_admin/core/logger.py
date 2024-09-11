@@ -1,5 +1,8 @@
+import os
 import sys
 import logging
+from datetime import datetime
+
 from loguru import logger
 
 from fast_admin.models.logs import Log
@@ -50,9 +53,9 @@ def setup_logging() -> None:
         sys.stdout,
         format=log_format,
         level="DEBUG" if settings.DEBUG else "INFO",  # 调试模式下输出DEBUG级别日志
-        enqueue=True,       # 使用队列以确保多线程安全
-        backtrace=True,     # 启用回溯以便于调试
-        diagnose=True,      # 启用诊断信息
+        enqueue=True,  # 使用队列以确保多线程安全
+        backtrace=True,  # 启用回溯以便于调试
+        diagnose=True,  # 启用诊断信息
     )
 
     # 添加异步数据库处理器
@@ -60,9 +63,30 @@ def setup_logging() -> None:
         AsyncioHandler().write,
         format=log_format,
         level="INFO",
+        enqueue=True,
         serialize=True,
         backtrace=True,
-        enqueue=True
+
+    )
+
+    # 日志文件路径
+    log_path = os.path.join(settings.BASE_DIR, 'logs', f'{datetime.now():%Y-%m-%d}.log')
+
+    # 如果文件夹不存在则创建
+    if not os.path.exists(os.path.dirname(log_path)):
+        os.mkdir(os.path.dirname(log_path))
+
+    # 添加文件处理器
+    logger.add(
+        log_path,
+        format=log_format,
+        level="INFO",
+        rotation="00:00",  # 每天午夜轮换日志文件
+        retention="30 days",  # 日志保留30天
+        compression="zip",  # 旧日志文件压缩为zip
+        enqueue=True,
+        backtrace=True,
+        diagnose=True
     )
 
     # 重定向logging到loguru
