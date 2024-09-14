@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     - APP_TITLE: 应用程序的标题。
     - APP_DESCRIPTION: 应用程序的描述。
     - SECRET_KEY: 应用程序的密钥。
+    - ALGORITHM: 加密算法。
+    - ACCESS_TOKEN_EXPIRE_MINUTES: 访问令牌的有效期（分钟）。
+    - REFRESH_TOKEN_EXPIRE_MINUTES: 刷新令牌的有效期（分钟）。
     - BASE_DIR: 应用程序的根目录。
     - DATABASE_USER: 数据库用户名。
     - DATABASE_PASSWORD: 数据库密码。
@@ -64,6 +67,9 @@ class Settings(BaseSettings):
     APP_DESCRIPTION: str = "本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的开源角色权限管理系统"
 
     SECRET_KEY: str = os.environ.get("SECRET_KEY")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     DATABASE_USER: str = os.environ.get("DATABASE_USER")
