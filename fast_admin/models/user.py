@@ -28,7 +28,10 @@ class User(BaseModel):
     is_active = fields.BooleanField(default=True, description="用户是否激活")
     is_superuser = fields.BooleanField(default=False, description="是否是超级管理员权限")
     roles: fields.ManyToManyRelation[Role] = fields.ManyToManyField(
-        "models.Role", related_name="users", through="user_role", description="用户拥有的角色"
+        "fast_admin.Role",
+        related_name="users",
+        # through="user_role",
+        description="用户拥有的角色"
     )
 
     def __str__(self):

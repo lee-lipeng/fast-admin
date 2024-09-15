@@ -17,7 +17,10 @@ class Role(BaseModel):
     name = fields.CharField(max_length=255, unique=True, description="角色名称")
     description = fields.TextField(null=True, blank=True, description="角色描述")
     permissions: fields.ManyToManyRelation[Permission] = fields.ManyToManyField(
-        "models.Permission", related_name="roles", through="role_permission", description="角色拥有的权限"
+        "fast_admin.Permission",
+        related_name="roles",
+        # through="role_permission",  # 注意若传递through参数，则需要手动创建中间表
+        description="角色拥有的权限"
     )
 
     def __str__(self):

@@ -3,11 +3,12 @@ from typing import Any, Union
 
 from fastapi import status
 from jwt import encode, decode, PyJWTError
-from pydantic import ValidationError, BaseModel
+from pydantic import ValidationError
 
 from fast_admin.core.config import settings
 from fast_admin.models.user import User, get_user_by_username
 from fast_admin.core.exceptions import CustomException
+from fast_admin.schemas.token import TokenPayload
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
@@ -82,22 +83,5 @@ async def get_current_user(token: str) -> User:
             msg="令牌无效",
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
-    try:
-        user = await get_user_by_username(username=token_data.sub)
-    except CustomException as e:
-        raise e
+    user = await get_user_by_username(username=token_data.sub)
     return user
-
-
-class TokenPayload(BaseModel):
-    """
-    令牌负载数据模型.
-
-    Attributes:
-        exp: 令牌过期时间.
-        sub: 令牌主题，通常是用户名.
-        type: 令牌类型.
-    """
-    exp: datetime
-    sub: str
-    type: str
