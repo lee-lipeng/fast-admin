@@ -19,15 +19,20 @@ class User(BaseModel):
         username: 用户名.
         password_hash: 密码哈希值.
         is_active: 用户是否激活.
+        is_superuser: 是否是超级管理员权限.
         roles: 用户拥有的角色.
     """
     id = fields.IntField(pk=True, description="用户ID")
     username = fields.CharField(max_length=255, unique=True, description="用户名")
     password_hash = fields.CharField(max_length=128, description="密码哈希值")
     is_active = fields.BooleanField(default=True, description="用户是否激活")
+    is_superuser = fields.BooleanField(default=False, description="是否是超级管理员权限")
     roles: fields.ManyToManyRelation[Role] = fields.ManyToManyField(
         "models.Role", related_name="users", through="user_role", description="用户拥有的角色"
     )
+
+    def __str__(self):
+        return self.username
 
     async def has_permission(self, permission_code: str, permission_type: str = "operation") -> bool:
         """
@@ -40,6 +45,10 @@ class User(BaseModel):
         Returns:
             如果用户拥有该权限，则返回 True，否则返回 False.
         """
+        # 超级管理员拥有所有权限
+        if self.is_superuser:
+            return True
+
         for role in await self.roles:
             for permission in await role.permissions:
                 if permission.code == permission_code and permission.type == permission_type:
@@ -57,9 +66,6 @@ class User(BaseModel):
             如果密码正确，则返回 True，否则返回 False.
         """
         return pwd_context.verify(password, self.password_hash)
-
-    def __str__(self):
-        return self.username
 
 
 async def get_user_by_username(username: str):
