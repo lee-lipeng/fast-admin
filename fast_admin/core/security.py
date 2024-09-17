@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any, Union
+from zoneinfo import ZoneInfo
 
 from fastapi import status
 from jwt import encode, decode, PyJWTError
@@ -9,6 +10,8 @@ from fast_admin.core.config import settings
 from fast_admin.models.user import User, get_user_by_username
 from fast_admin.core.exceptions import CustomException
 from fast_admin.schemas.token import TokenPayload
+
+time_zone = ZoneInfo(settings.TIMEZONE)
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
@@ -23,9 +26,9 @@ def create_access_token(subject: Union[str, Any], expires_delta: timedelta = Non
         访问令牌.
     """
     if expires_delta:
-        expire = datetime.now(timezone(settings.TIMEZONE)) + expires_delta
+        expire = datetime.now(time_zone) + expires_delta
     else:
-        expire = datetime.now(timezone(settings.TIMEZONE)) + timedelta(
+        expire = datetime.now(time_zone) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
@@ -45,9 +48,9 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: timedelta = No
         刷新令牌.
     """
     if expires_delta:
-        expire = datetime.now(timezone(settings.TIMEZONE)) + expires_delta
+        expire = datetime.now(time_zone) + expires_delta
     else:
-        expire = datetime.now(timezone(settings.TIMEZONE)) + timedelta(
+        expire = datetime.now(time_zone) + timedelta(
             minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
         )
     to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}

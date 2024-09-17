@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     - ALGORITHM: 加密算法。
     - ACCESS_TOKEN_EXPIRE_MINUTES: 访问令牌的有效期（分钟）。
     - REFRESH_TOKEN_EXPIRE_MINUTES: 刷新令牌的有效期（分钟）。
+    - AUTH_WHITELIST: 白名单，不需要登录即可访问的路由列表。
     - BASE_DIR: 应用程序的根目录。
     - DATABASE_USER: 数据库用户名。
     - DATABASE_PASSWORD: 数据库密码。
@@ -70,6 +71,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    AUTH_WHITELIST: list = [
+    ]
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     DATABASE_USER: str = os.environ.get("DATABASE_USER")
@@ -94,6 +97,7 @@ class Settings(BaseSettings):
         # 按序加载中间件配置列表
         "process_time_middleware",
         "cors_middleware",
+        "auth_middleware"
     ]
 
 

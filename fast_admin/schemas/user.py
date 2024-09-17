@@ -31,13 +31,15 @@ class UserCreate(UserBase):
     role_ids: Optional[List[int]] = None
 
 
-class UserLogin(UserBase):
+class UserLogin(BaseModel):
     """
     用户登录数据模型.
 
     Attributes:
+        username: 用户名.
         password: 密码.
     """
+    username: str
     password: str
 
 
