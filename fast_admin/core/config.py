@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     AUTH_WHITELIST: list = [
+        "/docs",
+        "/openapi.json",
+        "/auth/login",
+        "/users/"
     ]
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
