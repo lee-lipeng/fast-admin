@@ -1,15 +1,16 @@
 from typing import Optional
 from datetime import datetime
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
 from fast_admin.core.pagination import paginate, Pagination
 from fast_admin.models.logs import Log
 from fast_admin.schemas.logs import LogOut
+from fast_admin.core.dependencies import permission_required
 
 router = APIRouter()
 
 
-@router.get("/", response_model=Pagination[LogOut])
+@router.get("/", response_model=Pagination[LogOut], dependencies=[Depends(permission_required(permission_code="log:read"))])
 async def get_logs(
         level: Optional[str] = Query(None, description="日志级别"),
         process: Optional[str] = Query(None, description="进程信息"),

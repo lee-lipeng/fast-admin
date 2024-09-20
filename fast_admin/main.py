@@ -43,6 +43,7 @@ async def lifespan(app: FastAPI):
 
     # 运行数据库迁移
     await command.init()
+    # await command.migrate()
     await command.upgrade(run_in_transaction=True)
 
     # 注册 Redis 客户端到 FastAPI 应用程序状态
@@ -65,7 +66,6 @@ app = FastAPI(
     version=settings.APP_VERSION,
     lifespan=lifespan,
 )
-app.include_router(router)
 
 # 动态按序加载中间件
 for middleware_name in settings.MIDDLEWARE:
@@ -78,8 +78,14 @@ for middleware_name in settings.MIDDLEWARE:
 
 # 注册异常处理器
 exceptions.register_exception(app)
+
+app.include_router(router)
 """
 FastAPI 应用程序实例。
 
 这是 FastAPI 应用程序的核心对象，用于定义 API 路由、中间件和其他应用程序组件。
 """
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
