@@ -48,7 +48,7 @@ async def create_user(user_in: UserCreate):
         )
 
     # 获取创建后的用户及其角色
-    return await User.get(id=user.id).prefetch_related("roles")
+    return await User.get(id=user.id).prefetch_related("roles__permissions")
 
 
 @router.get("/", response_model=List[UserSchema], dependencies=[Depends(permission_required(permission_code="user:list"))])
@@ -59,7 +59,7 @@ async def list_users():
     Returns:
         所有用户的列表.
     """
-    users = await User.all().prefetch_related("roles")
+    users = await User.all().prefetch_related("roles__permissions")
     return users
 
 
@@ -85,7 +85,7 @@ async def get_user(user_id: int):
     Raises:
         HTTPException: 如果用户不存在，则抛出 HTTP 404 错误.
     """
-    user = await User.get_or_none(id=user_id).prefetch_related("roles")
+    user = await User.get_or_none(id=user_id).prefetch_related("roles__permissions")
     if not user:
         raise CustomException(
             msg="用户不存在",
@@ -134,7 +134,7 @@ async def update_user(user_id: int, user_in: UserUpdate):
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    return await User.get(id=user.id).prefetch_related("roles")
+    return await User.get(id=user.id).prefetch_related("roles__permissions")
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(permission_required(permission_code="user:delete"))])

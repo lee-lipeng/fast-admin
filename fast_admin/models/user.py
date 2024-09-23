@@ -84,7 +84,7 @@ async def get_user_by_username(username: str):
     Raises:
         CustomException: 如果用户不存在.
     """
-    user = await User.filter(username=username).first()
+    user = await User.filter(username=username).prefetch_related('roles__permissions').first()
     if not user:
         raise CustomException(msg="用户不存在", status_code=status.HTTP_404_NOT_FOUND)
     return user
