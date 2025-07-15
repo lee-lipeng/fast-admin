@@ -1,8 +1,3 @@
-import os
-import secrets
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv, set_key
-
 """
 配置模块。
 
@@ -14,99 +9,115 @@ from dotenv import load_dotenv, set_key
 
 """
 
+import os
+import secrets
+from pathlib import Path
+from typing import List, Optional
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
+from dotenv import load_dotenv, set_key
+
+# 获取项目根目录
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 # 加载.env文件中的环境变量
-load_dotenv()
+load_dotenv(BASE_DIR / ".env")
+
 
 # 检查.env文件中是否存在SECRET_KEY，若不存在则随机生成并添加到.env文件中
-if not os.environ.get("SECRET_KEY"):
-    secret_key = secrets.token_urlsafe(32)
-    set_key(".env", "SECRET_KEY", secret_key)
-    # 将生成的密钥添加到环境变量中
-    os.environ["SECRET_KEY"] = secret_key
+def ensure_secret_key() -> str:
+    """确保SECRET_KEY存在，如果不存在则生成一个新的"""
+    secret_key = os.environ.get("SECRET_KEY")
+    if not secret_key:
+        secret_key = secrets.token_urlsafe(32)
+        env_file = BASE_DIR / ".env"
+        if env_file.exists():
+            set_key(str(env_file), "SECRET_KEY", secret_key)
+        # 将生成的密钥添加到环境变量中
+        os.environ["SECRET_KEY"] = secret_key
+    return secret_key
 
 
 class Settings(BaseSettings):
     """
     应用程序的配置信息。
 
-    此类继承自 pydantic_settings.BaseSettings，用于定义应用程序的配置信息，包括：
-
-    - DEBUG: 调试模式。
-    - APP_NAME: 应用程序的名称。
-    - APP_VERSION: 应用程序的版本号。
-    - APP_TITLE: 应用程序的标题。
-    - APP_DESCRIPTION: 应用程序的描述。
-    - SECRET_KEY: 应用程序的密钥。
-    - ALGORITHM: 加密算法。
-    - ACCESS_TOKEN_EXPIRE_MINUTES: 访问令牌的有效期（分钟）。
-    - REFRESH_TOKEN_EXPIRE_MINUTES: 刷新令牌的有效期（分钟）。
-    - AUTH_WHITELIST: 白名单，不需要登录即可访问的路由列表。
-    - BASE_DIR: 应用程序的根目录。
-    - DATABASE_USER: 数据库用户名。
-    - DATABASE_PASSWORD: 数据库密码。
-    - DATABASE_HOST: 数据库主机名。
-    - DATABASE_PORT: 数据库端口号。
-    - DATABASE_NAME: 数据库名称。
-    - DB_MIN_CONNECTIONS: 数据库连接池最小连接数。
-    - DB_MAX_CONNECTIONS: 数据库连接池最大连接数。
-    - TIMEZONE: 时区设置。
-    - REDIS_HOST: Redis 主机名。
-    - REDIS_PORT: Redis 端口号。
-    - REDIS_DB: Redis 数据库号。
-    - ALLOW_ORIGINS: 允许跨域请求的源。
-    - ALLOW_CREDENTIALS: 是否允许跨域请求携带凭据。
-    - ALLOW_METHODS: 允许跨域请求的方法。
-    - ALLOW_HEADERS: 允许跨域请求的头部。
-    - MIDDLEWARE: 中间件配置列表。
-
+    此类继承自 pydantic_settings.BaseSettings，用于定义应用程序的配置信息。
     """
-    DEBUG: bool = False
+    # 应用基本信息
+    DEBUG: bool = Field(default=False, description="调试模式")
+    APP_NAME: str = Field(default="fast_admin", description="应用程序名称")
+    APP_VERSION: str = Field(default="0.1.0", description="应用程序版本号")
+    APP_TITLE: Optional[str] = Field(default=None, description="应用程序标题")
+    APP_DESCRIPTION: str = Field(
+        default="本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的开源角色权限管理系统",
+        description="应用程序描述"
+    )
 
-    APP_NAME: str = "fast_admin"
-    APP_VERSION: str = "0.1.0"
-    APP_TITLE: str = f"{APP_NAME} v{APP_VERSION}"
-    APP_DESCRIPTION: str = "本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的开源角色权限管理系统"
+    # 安全配置
+    SECRET_KEY: str = Field(default_factory=ensure_secret_key, description="应用程序密钥")
+    ALGORITHM: str = Field(default="HS256", description="JWT加密算法")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24 * 8, description="访问令牌有效期（分钟）")
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = Field(default=60 * 24 * 8, description="刷新令牌有效期（分钟）")
+    AUTH_WHITELIST: List[str] = Field(
+        default=["/docs", "/redoc", "/openapi.json", "/auth/login", "/users/"],
+        description="不需要登录即可访问的路由列表"
+    )
 
-    SECRET_KEY: str = os.environ.get("SECRET_KEY")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    AUTH_WHITELIST: list = [
-        "/docs",
-        "/openapi.json",
-        "/auth/login",
-        "/users/"
-    ]
-    BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # 数据库配置
+    DATABASE_USER: str = Field(..., description="数据库用户名")
+    DATABASE_PASSWORD: str = Field(..., description="数据库密码")
+    DATABASE_HOST: str = Field(..., description="数据库主机名")
+    DATABASE_PORT: int = Field(..., description="数据库端口号")
+    DATABASE_NAME: str = Field(..., description="数据库名称")
+    DB_MIN_CONNECTIONS: int = Field(default=5, description="数据库连接池最小连接数")
+    DB_MAX_CONNECTIONS: int = Field(default=10, description="数据库连接池最大连接数")
+    TIMEZONE: str = Field(default="Asia/Shanghai", description="时区设置")
 
-    DATABASE_USER: str = os.environ.get("DATABASE_USER")
-    DATABASE_PASSWORD: str = os.environ.get("DATABASE_PASSWORD")
-    DATABASE_HOST: str = os.environ.get("DATABASE_HOST")
-    DATABASE_PORT: int = os.environ.get("DATABASE_PORT")
-    DATABASE_NAME: str = os.environ.get("DATABASE_NAME")
-    DB_MIN_CONNECTIONS: int = os.environ.get("DB_MIN_CONNECTIONS", 5)
-    DB_MAX_CONNECTIONS: int = os.environ.get("DB_MAX_CONNECTIONS", 10)
-    TIMEZONE: str = "Asia/Shanghai"
+    # Redis配置
+    REDIS_HOST: Optional[str] = Field(default=None, description="Redis主机名")
+    REDIS_PORT: Optional[int] = Field(default=None, description="Redis端口号")
+    REDIS_DB: Optional[int] = Field(default=None, description="Redis数据库号")
+    REDIS_PASSWORD: Optional[str] = Field(default=None, description="Redis密码")
 
-    REDIS_HOST: str = os.environ.get("REDIS_HOST")
-    REDIS_PORT: int = os.environ.get("REDIS_PORT")
-    REDIS_DB: int = os.environ.get("REDIS_DB")
+    # CORS配置
+    ALLOW_ORIGINS: List[str] = Field(default=["*"], description="允许跨域请求的源")
+    ALLOW_CREDENTIALS: bool = Field(default=True, description="是否允许跨域请求携带凭据")
+    ALLOW_METHODS: List[str] = Field(default=["*"], description="允许跨域请求的方法")
+    ALLOW_HEADERS: List[str] = Field(default=["*"], description="允许跨域请求的头部")
 
-    ALLOW_ORIGINS: list = ["*"]
-    ALLOW_CREDENTIALS: bool = True
-    ALLOW_METHODS: list = ["*"]
-    ALLOW_HEADERS: list = ["*"]
+    # 中间件配置
+    MIDDLEWARE: List[str] = Field(
+        default=[
+            "process_time_middleware",
+            "cors_middleware",
+            "auth_middleware"
+        ],
+        description="中间件配置列表"
+    )
 
-    MIDDLEWARE: list = [
-        # 按序加载中间件配置列表
-        "process_time_middleware",
-        "cors_middleware",
-        "auth_middleware"
-    ]
+    @field_validator("APP_TITLE", mode="before")
+    @classmethod
+    def set_app_title(cls, v, info):
+        """如果未设置APP_TITLE，则根据APP_NAME和APP_VERSION生成"""
+        if v is None and info.data:
+            app_name = info.data.get("APP_NAME", "fast_admin")
+            app_version = info.data.get("APP_VERSION", "0.1.0")
+            return f"{app_name} v{app_version}"
+        return v
+
+    class Config:
+        """Pydantic配置"""
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = True
+        extra = "ignore"  # 忽略额外的环境变量
 
 
+# 创建全局设置实例
 settings = Settings()
 
+# Tortoise-ORM配置
 TORTOISE_ORM = {
     "connections": {
         "default": {

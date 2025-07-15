@@ -70,7 +70,7 @@ app = FastAPI(
 # 动态按序加载中间件
 for middleware_name in settings.MIDDLEWARE:
     if middleware_name == "cors_middleware":
-        middleware.cors_middleware(app, settings)
+        middleware.cors_middleware(app)
     else:
         # 获取并注册中间件
         middleware_function = getattr(middleware, middleware_name)
@@ -85,7 +85,6 @@ FastAPI 应用程序实例。
 
 这是 FastAPI 应用程序的核心对象，用于定义 API 路由、中间件和其他应用程序组件。
 """
-
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -6,7 +6,7 @@ from datetime import datetime
 from loguru import logger
 
 from fast_admin.models.logs import Log
-from fast_admin.core.config import settings
+from fast_admin.core.config import settings, BASE_DIR
 
 
 class AsyncioHandler:
@@ -70,7 +70,7 @@ def setup_logging() -> None:
     )
 
     # 日志文件路径
-    log_path = os.path.join(settings.BASE_DIR, 'logs', f'{datetime.now():%Y-%m-%d}.log')
+    log_path = os.path.join(BASE_DIR, 'logs', f'{datetime.now():%Y-%m-%d}.log')
 
     # 如果文件夹不存在则创建
     if not os.path.exists(os.path.dirname(log_path)):
