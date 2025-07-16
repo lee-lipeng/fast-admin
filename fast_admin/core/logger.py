@@ -48,26 +48,31 @@ def setup_logging() -> None:
         "<level>{message}</level>"
     )
 
+    # 获取日志级别
+    log_level = "DEBUG" if settings.DEBUG else "INFO"
+
     # 添加控制台处理器
     logger.add(
         sys.stdout,
         format=log_format,
-        level="DEBUG" if settings.DEBUG else "INFO",  # 调试模式下输出DEBUG级别日志
+        level=log_level,
         enqueue=True,  # 使用队列以确保多线程安全
         backtrace=True,  # 启用回溯以便于调试
-        diagnose=True,  # 启用诊断信息
+        diagnose=settings.DEBUG,  # 只在调试模式下启用诊断信息
+        colorize=True,  # 启用颜色
     )
 
-    # 添加异步数据库处理器
-    logger.add(
-        AsyncioHandler().write,
-        format=log_format,
-        level="INFO",
-        enqueue=True,
-        serialize=True,
-        backtrace=True,
-
-    )
+    # 添加异步数据库处理器（仅在非调试模式下）
+    if not settings.DEBUG:
+        async_handler = AsyncioHandler()
+        logger.add(
+            async_handler.write,
+            format=log_format,
+            level="INFO",
+            enqueue=True,
+            serialize=True,
+            backtrace=True,
+        )
 
     # 日志文件路径
     log_path = os.path.join(BASE_DIR, 'logs', f'{datetime.now():%Y-%m-%d}.log')
