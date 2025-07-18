@@ -1,3 +1,12 @@
+"""
+FastAPI 应用程序的主入口点。
+
+此模块包含 FastAPI 应用程序的初始化和配置，包括：
+
+- 创建 FastAPI 应用程序实例。
+- 使用 lifespan 上下文管理器管理数据库迁移和 Tortoise-ORM 注册。
+"""
+
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
@@ -7,15 +16,6 @@ from fast_admin.core.config import settings, TORTOISE_ORM
 from fast_admin.core.logger import setup_logging
 from fast_admin.core import middleware, exceptions
 from fast_admin.api import router
-
-"""
-FastAPI 应用程序的主入口点。
-
-此模块包含 FastAPI 应用程序的初始化和配置，包括：
-
-- 创建 FastAPI 应用程序实例。
-- 使用 lifespan 上下文管理器管理数据库迁移和 Tortoise-ORM 注册。
-"""
 
 
 @asynccontextmanager
@@ -45,14 +45,6 @@ async def lifespan(app: FastAPI):
     await command.init()
     # await command.migrate()
     await command.upgrade(run_in_transaction=True)
-
-    # 注册 Redis 客户端到 FastAPI 应用程序状态
-    # app.state.redis = Redis(
-    #     host=settings.REDIS_HOST,
-    #     port=settings.REDIS_PORT,
-    #     db=settings.REDIS_DB,
-    #     decode_responses=True
-    # )
 
     # 设置应用程序日志
     setup_logging()
@@ -87,4 +79,5 @@ FastAPI 应用程序实例。
 """
 if __name__ == '__main__':
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
