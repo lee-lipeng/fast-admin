@@ -1,13 +1,12 @@
-from passlib.context import CryptContext
-
 from tortoise import fields
 from starlette import status
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
+from fast_admin.core.config import settings
 from fast_admin.core.exceptions import CustomException
 from fast_admin.models.base import BaseModel
-from .role import Role
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from fast_admin.models.role import Role
 
 
 class User(BaseModel):
@@ -20,6 +19,7 @@ class User(BaseModel):
         password_hash: 密码哈希值.
         is_active: 用户是否激活.
         is_superuser: 是否是超级管理员权限.
+        last_login: 最后登录时间.
         roles: 用户拥有的角色.
     """
     id = fields.IntField(pk=True, description="用户ID")
@@ -27,14 +27,15 @@ class User(BaseModel):
     password_hash = fields.CharField(max_length=128, description="密码哈希值")
     is_active = fields.BooleanField(default=True, description="用户是否激活")
     is_superuser = fields.BooleanField(default=False, description="是否是超级管理员权限")
+    last_login = fields.DatetimeField(null=True, description="最后登录时间")
     roles: fields.ManyToManyRelation[Role] = fields.ManyToManyField(
         "fast_admin.Role",
         related_name="users",
-        # through="user_role",
         description="用户拥有的角色"
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """返回用户名作为字符串表示"""
         return self.username
 
     async def has_permission(self, permission_code: str, permission_type: str = "operation") -> bool:
@@ -58,7 +59,7 @@ class User(BaseModel):
                     return True
         return False
 
-    def verify_password(self, password: str):
+    def verify_password(self, password: str) -> bool:
         """
         验证密码是否正确.
 
@@ -66,12 +67,18 @@ class User(BaseModel):
             password: 明文密码.
 
         Returns:
-            如果密码正确，则返回 True，否则返回 False.
+            bool: 如果密码正确，则返回 True，否则返回 False.
         """
-        return pwd_context.verify(password, self.password_hash)
+        from fast_admin.core.security import verify_password
+        return verify_password(password, self.password_hash)
+
+    async def update_last_login(self) -> None:
+        """更新用户最后登录时间"""
+        self.last_login = datetime.now(ZoneInfo(settings.TIMEZONE))
+        await self.save(update_fields=["last_login"])
 
 
-async def get_user_by_username(username: str):
+async def get_user_by_username(username: str) -> User:
     """
     根据用户名获取用户信息.
 
@@ -79,12 +86,31 @@ async def get_user_by_username(username: str):
         username: 用户名.
 
     Returns:
-        用户信息.
+        User: 用户信息.
 
     Raises:
         CustomException: 如果用户不存在.
     """
     user = await User.filter(username=username).prefetch_related('roles__permissions').first()
+    if not user:
+        raise CustomException(msg="用户不存在", status_code=status.HTTP_404_NOT_FOUND)
+    return user
+
+
+async def get_user_by_id(user_id: int) -> User:
+    """
+    根据ID获取用户信息.
+
+    Args:
+        user_id: 用户ID.
+
+    Returns:
+        User: 用户信息.
+
+    Raises:
+        CustomException: 如果用户不存在.
+    """
+    user = await User.filter(id=user_id).prefetch_related('roles__permissions').first()
     if not user:
         raise CustomException(msg="用户不存在", status_code=status.HTTP_404_NOT_FOUND)
     return user

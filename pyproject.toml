@@ -3,7 +3,7 @@ name = "fast-admin"
 version = "0.1.0"
 description = "本项目是一个基于 FastAPI 框架、Tortoise-ORM 和 PostgreSQL 数据库构建的一个基础权限管理系统。"
 authors = [
-    {name = "lee-lipeng", email = "1640583318@qq.com"},
+    { name = "lee-lipeng", email = "1640583318@qq.com" },
 ]
 dependencies = [
     "fastapi>=0.112.2",
@@ -17,12 +17,13 @@ dependencies = [
     "orjson>=3.10.7",
     "PyJWT>=2.9.0",
     "tzdata>=2024.1",
-    "passlib[bcrypt]>=1.7.4",
+    "passlib==1.7.4",
+    "bcrypt==4.0.1",
+    "python-multipart>=0.0.20",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
-license = {text = "MIT"}
-
+license = { text = "MIT" }
 
 [tool.pdm]
 distribution = false

@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS "user" (
     "username" VARCHAR(255) NOT NULL UNIQUE,
     "password_hash" VARCHAR(128) NOT NULL,
     "is_active" BOOL NOT NULL  DEFAULT True,
-    "is_superuser" BOOL NOT NULL  DEFAULT False
+    "is_superuser" BOOL NOT NULL  DEFAULT False,
+    "last_login" TIMESTAMPTZ
 );
 COMMENT ON COLUMN "user"."created_at" IS '创建时间';
 COMMENT ON COLUMN "user"."updated_at" IS '更新时间';
@@ -77,6 +78,7 @@ COMMENT ON COLUMN "user"."username" IS '用户名';
 COMMENT ON COLUMN "user"."password_hash" IS '密码哈希值';
 COMMENT ON COLUMN "user"."is_active" IS '用户是否激活';
 COMMENT ON COLUMN "user"."is_superuser" IS '是否是超级管理员权限';
+COMMENT ON COLUMN "user"."last_login" IS '最后登录时间';
 COMMENT ON TABLE "user" IS '用户模型';
 CREATE TABLE IF NOT EXISTS "aerich" (
     "id" SERIAL NOT NULL PRIMARY KEY,
